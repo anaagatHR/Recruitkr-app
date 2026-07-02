@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "RecruitKR",
+    "slug": "recruitkr",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./src/assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.recruitkr.app",
+      "permissions": ["POST_NOTIFICATIONS"],
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "web": {
+      "favicon": "./src/assets/icon.png"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./src/assets/icon.png",
+          "color": "#274B7F"
+        }
+      ]
+    ],
+    "extra": {
+      "//": "Deployed backend URL (Render). Used by the built APK.",
+      "apiUrl": "https://recruitkr-api.onrender.com/api",
+      "eas": {
+        "projectId": "e7cdd70e-df9d-434b-88df-26ff2d456404"
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Secrets & env (NEVER commit — contains API keys)
+.env
+**/.env
+.env.local
+**/.env.local
+
+# Expo / build artifacts
+.expo/
+**/.expo/
+dist/
+**/dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Logs
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.tmp

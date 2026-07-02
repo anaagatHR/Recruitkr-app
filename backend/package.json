@@ -1,0 +1,37 @@
+{
+  "name": "recruitkr-backend",
+  "version": "1.0.0",
+  "description": "RecruitKR backend API - jobs, candidates, employers",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "demo": "node src/demo-server.js",
+    "seed": "node src/seed.js"
+  },
+  "keywords": [
+    "recruitment",
+    "jobs",
+    "api"
+  ],
+  "author": "RecruitKR",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.109.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.5.1"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.2.0"
+  }
+}

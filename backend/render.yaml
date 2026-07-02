@@ -1,0 +1,17 @@
+# Render.com deployment config for RecruitKR backend.
+# When you connect this repo, Render reads this file automatically.
+services:
+  - type: web
+    name: recruitkr-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true # Render auto-generates a secure secret
+      - key: JWT_EXPIRES_IN
+        value: 30d
+      - key: MONGO_URI
+        sync: false # you paste your MongoDB Atlas URI in the dashboard
