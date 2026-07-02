@@ -23,6 +23,7 @@ export default function ApplicantsScreen({ route, navigation }) {
   const aiEnabled = useAIEnabled();
   const { jobId, jobTitle } = route.params;
   const [apps, setApps] = useState([]);
+  const [jobInfo, setJobInfo] = useState(null); // { title, jobType }
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(false);
@@ -32,8 +33,9 @@ export default function ApplicantsScreen({ route, navigation }) {
 
   const load = useCallback(async () => {
     try {
-      const { applications } = await applicationsApi.forJob(jobId);
+      const { applications, job } = await applicationsApi.forJob(jobId);
       setApps(applications);
+      if (job) setJobInfo(job);
       setError(false);
     } catch (e) {
       setApps([]);
@@ -43,6 +45,10 @@ export default function ApplicantsScreen({ route, navigation }) {
       setRefreshing(false);
     }
   }, [jobId]);
+
+  const isInternship = jobInfo?.jobType === "internship";
+  const isNew = (createdAt) =>
+    createdAt && Date.now() - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000;
 
   useEffect(() => { load(); }, [load]);
 
@@ -124,14 +130,32 @@ export default function ApplicantsScreen({ route, navigation }) {
           renderItem={({ item }) => {
             const c = item.candidate || {};
             const rank = ranking?.[item._id];
+            // Prefer what was typed on the apply form; fall back to profile.
+            const name = item.applicantName || c.name || "Applicant";
+            const phone = item.applicantPhone || c.phone;
+            const email = item.applicantEmail || c.email;
+            const fresh = isNew(item.createdAt);
             return (
-              <View style={[styles.card, rank && styles.cardRanked]}>
+              <View style={[styles.card, rank && styles.cardRanked, fresh && styles.cardNew]}>
+                {/* Internship applicants: prominent 24-hour call reminder */}
+                {isInternship && (
+                  <View style={styles.internNote}>
+                    <Ionicons name="alarm-outline" size={16} color={colors.danger} />
+                    <Text style={styles.internNoteText}>Intern — call within 24 hours</Text>
+                  </View>
+                )}
+
                 <View style={styles.row}>
                   <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{(c.name || "?").charAt(0).toUpperCase()}</Text>
+                    <Text style={styles.avatarText}>{(name || "?").charAt(0).toUpperCase()}</Text>
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.name}>{c.name}</Text>
+                    <View style={styles.nameRow}>
+                      <Text style={styles.name}>{name}</Text>
+                      {fresh && (
+                        <View style={styles.newBadge}><Text style={styles.newBadgeText}>NEW</Text></View>
+                      )}
+                    </View>
                     <Text style={styles.headline}>{c.headline || "Candidate"}</Text>
                   </View>
                   <StatusBadge status={item.status} />
@@ -147,11 +171,33 @@ export default function ApplicantsScreen({ route, navigation }) {
                   </View>
                 )}
 
+                {/* Tap-to-call and tap-to-email — quick contact actions */}
+                <View style={styles.contactRow}>
+                  {phone ? (
+                    <TouchableOpacity style={styles.contactBtn} onPress={() => Linking.openURL(`tel:${phone}`)}>
+                      <Ionicons name="call" size={16} color={colors.white} />
+                      <Text style={styles.contactBtnText}>Call</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                  {email ? (
+                    <TouchableOpacity style={styles.contactBtnAlt} onPress={() => Linking.openURL(`mailto:${email}`)}>
+                      <Ionicons name="mail" size={16} color={colors.primary} />
+                      <Text style={styles.contactBtnAltText}>Email</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+
                 <View style={styles.details}>
+                  {phone ? <Detail icon="call-outline" text={phone} styles={styles} colors={colors} /> : null}
+                  {email ? <Detail icon="mail-outline" text={email} styles={styles} colors={colors} /> : null}
+                  {item.referenceSource ? (
+                    <Detail icon="megaphone-outline" text={`Heard via: ${item.referenceSource}`} styles={styles} colors={colors} />
+                  ) : null}
+                  {item.referenceName ? (
+                    <Detail icon="person-outline" text={`Referred by: ${item.referenceName}`} styles={styles} colors={colors} />
+                  ) : null}
                   {c.location ? <Detail icon="location-outline" text={c.location} styles={styles} colors={colors} /> : null}
                   {c.experience ? <Detail icon="time-outline" text={c.experience} styles={styles} colors={colors} /> : null}
-                  {c.phone ? <Detail icon="call-outline" text={c.phone} styles={styles} colors={colors} /> : null}
-                  {c.email ? <Detail icon="mail-outline" text={c.email} styles={styles} colors={colors} /> : null}
                   {(item.resumeUrl || c.resumeUrl) ? (
                     <TouchableOpacity onPress={() => Linking.openURL(item.resumeUrl || c.resumeUrl)}>
                       <Detail icon="document-attach-outline" text="View Resume" link styles={styles} colors={colors} />
@@ -232,6 +278,30 @@ const makeStyles = (colors) => StyleSheet.create({
     marginBottom: spacing.md, borderWidth: 1, borderColor: colors.border,
   },
   cardRanked: { borderColor: colors.primary + "55" },
+  cardNew: { borderColor: colors.accent, borderWidth: 1.5 },
+  internNote: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    backgroundColor: colors.danger + "14", borderRadius: radius.md,
+    paddingHorizontal: spacing.md, paddingVertical: 8, marginBottom: spacing.md,
+  },
+  internNoteText: { color: colors.danger, fontWeight: "800", fontSize: 13 },
+  nameRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  newBadge: {
+    backgroundColor: colors.accent, paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.pill,
+  },
+  newBadgeText: { color: colors.white, fontSize: 9, fontWeight: "900", letterSpacing: 0.5 },
+  contactRow: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.md },
+  contactBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5,
+    flex: 1, backgroundColor: colors.primary, paddingVertical: spacing.sm, borderRadius: radius.md,
+  },
+  contactBtnText: { color: colors.white, fontWeight: "700", fontSize: 13 },
+  contactBtnAlt: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5,
+    flex: 1, backgroundColor: colors.primaryLight, paddingVertical: spacing.sm, borderRadius: radius.md,
+    borderWidth: 1, borderColor: colors.primary,
+  },
+  contactBtnAltText: { color: colors.primary, fontWeight: "700", fontSize: 13 },
   aiFit: { marginTop: spacing.md },
   matchPill: {
     flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start",

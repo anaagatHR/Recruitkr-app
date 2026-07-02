@@ -7,8 +7,10 @@ import { Ionicons } from "@expo/vector-icons";
 import Button from "../../components/Button";
 import { Loading } from "../../components/Common";
 import AIMatchCard from "../../components/AIMatchCard";
+import ApplyModal from "../../components/ApplyModal";
 import { jobsApi, applicationsApi } from "../../api";
 import { spacing, radius } from "../../theme/colors";
+import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { notifyLocal } from "../../services/localNotify";
 import { useNotifications } from "../../context/NotificationsContext";
@@ -27,10 +29,12 @@ function formatSalary(min, max) {
 export default function JobDetailScreen({ route, navigation }) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { user } = useAuth();
   const notif = useNotifications();
   const saved = useSavedJobs();
   const recent = useRecentlyViewed();
   const aiEnabled = useAIEnabled();
+  const [showApply, setShowApply] = useState(false);
   const { jobId } = route.params;
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -61,12 +65,17 @@ export default function JobDetailScreen({ route, navigation }) {
     })();
   }, [jobId]);
 
-  async function handleApply() {
+  function handleApply() {
     if (alreadyApplied) return;
+    setShowApply(true); // open the simple apply form
+  }
+
+  async function submitApplication(details) {
     setApplying(true);
     try {
-      await applicationsApi.apply({ jobId });
+      await applicationsApi.apply({ jobId, ...details });
       setAlreadyApplied(true);
+      setShowApply(false);
       haptics.success();
       Alert.alert("Applied! 🎉", "Your application has been sent. Track it in 'Applications'.");
       notifyLocal("Application sent ✅", `You applied to ${job?.title || "a job"}${job?.company ? " at " + job.company : ""}.`);
@@ -173,6 +182,15 @@ export default function JobDetailScreen({ route, navigation }) {
           <Button title="Apply Now" onPress={handleApply} loading={applying} />
         )}
       </View>
+
+      <ApplyModal
+        visible={showApply}
+        onClose={() => setShowApply(false)}
+        onSubmit={submitApplication}
+        submitting={applying}
+        user={user}
+        jobTitle={job?.title}
+      />
     </SafeAreaView>
   );
 }

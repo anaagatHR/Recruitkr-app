@@ -4,7 +4,12 @@ import Job from "../models/Job.js";
 // POST /api/applications  (candidate applies to a job)
 export async function apply(req, res) {
   try {
-    const { jobId, coverNote } = req.body;
+    const {
+      jobId, coverNote,
+      applicantName, applicantEmail, applicantPhone,
+      referenceSource, referenceName,
+    } = req.body;
+
     const job = await Job.findById(jobId);
     if (!job) return res.status(404).json({ message: "Job not found" });
 
@@ -13,10 +18,16 @@ export async function apply(req, res) {
       return res.status(409).json({ message: "You have already applied to this job" });
     }
 
+    // Prefer what the candidate typed on the apply form; fall back to profile.
     const application = await Application.create({
       job: job._id,
       candidate: req.user._id,
       employer: job.postedBy,
+      applicantName: (applicantName || req.user.name || "").trim(),
+      applicantEmail: (applicantEmail || req.user.email || "").trim(),
+      applicantPhone: (applicantPhone || req.user.phone || "").trim(),
+      referenceSource: (referenceSource || "").trim(),
+      referenceName: (referenceName || "").trim(),
       coverNote,
       resumeUrl: req.user.resumeUrl,
     });
@@ -50,9 +61,10 @@ export async function jobApplicants(req, res) {
     }
     const apps = await Application.find({ job: job._id })
       .populate("candidate", "name email phone headline skills experience location resumeUrl about")
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 }) // newest applicants first
       .limit(500);
-    res.json({ applications: apps });
+    // Include the job's type so the app can flag internship applicants.
+    res.json({ applications: apps, job: { _id: job._id, title: job.title, jobType: job.jobType } });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

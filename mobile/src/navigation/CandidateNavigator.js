@@ -8,6 +8,7 @@ import { useTheme } from "../context/ThemeContext";
 
 import JobListScreen from "../screens/candidate/JobListScreen";
 import JobDetailScreen from "../screens/candidate/JobDetailScreen";
+import InternshipsScreen from "../screens/candidate/InternshipsScreen";
 import SavedJobsScreen from "../screens/candidate/SavedJobsScreen";
 import MyApplicationsScreen from "../screens/candidate/MyApplicationsScreen";
 import ProfileScreen from "../screens/candidate/ProfileScreen";
@@ -26,6 +27,16 @@ function HomeStack() {
       <Stack.Screen name="JobDetail" component={JobDetailScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="Companies" component={CompaniesScreen} />
+      <Stack.Screen name="CompanyDetail" component={CompanyDetailScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function InternStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="InternList" component={InternshipsScreen} />
+      <Stack.Screen name="JobDetail" component={JobDetailScreen} />
       <Stack.Screen name="CompanyDetail" component={CompanyDetailScreen} />
     </Stack.Navigator>
   );
@@ -58,6 +69,7 @@ export default function CandidateNavigator() {
         tabBarIcon: ({ color, size }) => {
           const icons = {
             Jobs: "briefcase",
+            Internships: "school",
             Saved: "bookmark",
             Applications: "document-text",
             Account: "person",
@@ -67,6 +79,7 @@ export default function CandidateNavigator() {
       })}
     >
       <Tab.Screen name="Jobs" component={HomeStack} options={{ tabBarLabel: t("jobs") }} />
+      <Tab.Screen name="Internships" component={InternStack} options={{ tabBarLabel: "Interns" }} />
       <Tab.Screen name="Saved" component={SavedJobsScreen} options={{ tabBarLabel: t("saved") }} />
       <Tab.Screen name="Applications" component={MyApplicationsScreen} options={{ tabBarLabel: t("applications") }} />
       <Tab.Screen name="Account" component={ProfileStack} options={{ tabBarLabel: t("account") }} />

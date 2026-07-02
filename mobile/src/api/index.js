@@ -20,6 +20,7 @@ export const jobsApi = {
 
 // ---- Applications ----
 export const applicationsApi = {
+  // data: { jobId, applicantName, applicantEmail, applicantPhone, referenceSource, referenceName }
   apply: (data) => client.post("/applications", data).then((r) => r.data),
   mine: () => client.get("/applications/mine").then((r) => r.data),
   forJob: (jobId) => client.get(`/applications/job/${jobId}`).then((r) => r.data),
