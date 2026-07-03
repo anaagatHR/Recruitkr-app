@@ -39,9 +39,9 @@
       "//": "Deployed backend URL (Render). Used by the built APK.",
       "apiUrl": "https://recruitkr-api.onrender.com/api",
       "cloudinary": {
-        "//": "Fill these to enable profile photo upload. cloudName + an UNSIGNED upload preset from cloudinary.com. Not secrets.",
-        "cloudName": "",
-        "uploadPreset": ""
+        "//": "Profile photo upload. cloudName + an UNSIGNED upload preset. Not secrets.",
+        "cloudName": "j7rkqnw6",
+        "uploadPreset": "ml_default"
       },
       "eas": {
         "projectId": "e7cdd70e-df9d-434b-88df-26ff2d456404"
