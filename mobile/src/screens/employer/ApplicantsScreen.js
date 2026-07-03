@@ -5,6 +5,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Loading, EmptyState, ErrorState, StatusBadge } from "../../components/Common";
+import Avatar from "../../components/Avatar";
 import { applicationsApi, aiApi } from "../../api";
 import { spacing, radius } from "../../theme/colors";
 import { useTheme } from "../../context/ThemeContext";
@@ -146,9 +147,7 @@ export default function ApplicantsScreen({ route, navigation }) {
                 )}
 
                 <View style={styles.row}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{(name || "?").charAt(0).toUpperCase()}</Text>
-                  </View>
+                  <Avatar uri={c.photoUrl} name={name} size={46} />
                   <View style={{ flex: 1 }}>
                     <View style={styles.nameRow}>
                       <Text style={styles.name}>{name}</Text>

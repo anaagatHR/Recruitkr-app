@@ -72,6 +72,7 @@ export async function updateMe(req, res) {
     const allowed = [
       "name", "phone", "headline", "skills", "experience", "location",
       "resumeUrl", "about", "companyName", "companyWebsite", "companyAbout",
+      "photoUrl",
     ];
     allowed.forEach((field) => {
       if (req.body[field] !== undefined) req.user[field] = req.body[field];

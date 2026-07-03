@@ -22,6 +22,9 @@ const userSchema = new mongoose.Schema(
       default: "candidate",
     },
 
+    // Profile photo (Cloudinary URL) — used for both candidates and employers.
+    photoUrl: { type: String, trim: true },
+
     // Candidate-specific
     headline: { type: String, trim: true }, // e.g. "Frontend Developer"
     skills: [{ type: String, trim: true }],

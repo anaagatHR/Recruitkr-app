@@ -1,11 +1,15 @@
-import React, { useMemo } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking } from "react-native";
+import React, { useMemo, useState } from "react";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as Sharing from "expo-sharing";
+import * as ImagePicker from "expo-image-picker";
+import Avatar from "../../components/Avatar";
 import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../i18n/LanguageContext";
 import { useTheme } from "../../context/ThemeContext";
+import { authApi } from "../../api";
+import { uploadImageAsync, CLOUDINARY_READY } from "../../services/uploadImage";
 import { spacing, radius } from "../../theme/colors";
 
 function parseResume(raw) {
@@ -20,11 +24,41 @@ function parseResume(raw) {
 }
 
 export default function ProfileScreen({ navigation }) {
-  const { user, logout } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const { t } = useLang();
   const { colors, isDark, toggleTheme } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const resume = parseResume(user?.resumeUrl);
+  const [photoBusy, setPhotoBusy] = useState(false);
+
+  async function changePhoto() {
+    if (!CLOUDINARY_READY) {
+      Alert.alert("Coming soon", "Photo upload will be enabled shortly.");
+      return;
+    }
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert("Permission needed", "Please allow photo access to set a picture.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.6,
+    });
+    if (result.canceled) return;
+    setPhotoBusy(true);
+    try {
+      const url = await uploadImageAsync(result.assets[0].uri);
+      const { user: updated } = await authApi.updateMe({ photoUrl: url });
+      setUser(updated);
+    } catch (e) {
+      Alert.alert("Upload failed", e.message);
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
 
   function confirmLogout() {
     Alert.alert("Log out", "Are you sure you want to log out?", [
@@ -52,9 +86,16 @@ export default function ProfileScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.profileHead}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{(user?.name || "?").charAt(0).toUpperCase()}</Text>
-          </View>
+          <TouchableOpacity onPress={changePhoto} activeOpacity={0.85} disabled={photoBusy}>
+            <Avatar uri={user?.photoUrl} name={user?.name} size={96} />
+            <View style={styles.camBadge}>
+              {photoBusy ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <Ionicons name="camera" size={16} color={colors.white} />
+              )}
+            </View>
+          </TouchableOpacity>
           <Text style={styles.name}>{user?.name}</Text>
           <Text style={styles.headline}>{user?.headline || "Add your professional headline"}</Text>
           <TouchableOpacity style={styles.editBtn} onPress={() => navigation.navigate("EditProfile")}>
@@ -117,9 +158,12 @@ export default function ProfileScreen({ navigation }) {
           </View>
         ) : null}
 
-        <TouchableOpacity style={styles.logout} onPress={confirmLogout}>
-          <Ionicons name="log-out-outline" size={20} color={colors.danger} />
+        <TouchableOpacity style={styles.logout} onPress={confirmLogout} activeOpacity={0.85}>
+          <View style={styles.logoutIcon}>
+            <Ionicons name="log-out-outline" size={20} color={colors.white} />
+          </View>
           <Text style={styles.logoutText}>{t("logout")}</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.white} style={{ opacity: 0.9 }} />
         </TouchableOpacity>
 
         <Text style={styles.version}>RecruitKR • v1.0.0</Text>
@@ -146,11 +190,12 @@ const makeStyles = (colors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   scroll: { padding: spacing.lg },
   profileHead: { alignItems: "center", marginBottom: spacing.lg },
-  avatar: {
-    width: 88, height: 88, borderRadius: 44, backgroundColor: colors.primary,
+  camBadge: {
+    position: "absolute", right: -2, bottom: -2,
+    width: 32, height: 32, borderRadius: 16, backgroundColor: colors.primary,
     alignItems: "center", justifyContent: "center",
+    borderWidth: 3, borderColor: colors.background,
   },
-  avatarText: { color: colors.white, fontSize: 36, fontWeight: "800" },
   name: { fontSize: 22, fontWeight: "800", color: colors.text, marginTop: spacing.md },
   headline: { fontSize: 14, color: colors.textMuted, marginTop: 2 },
   editBtn: {
@@ -202,10 +247,15 @@ const makeStyles = (colors) => StyleSheet.create({
   skillText: { color: colors.primary, fontSize: 13, fontWeight: "600" },
   aboutText: { fontSize: 14, color: colors.text, lineHeight: 21 },
   logout: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm,
-    marginTop: spacing.xl, padding: spacing.lg, borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.danger,
+    flexDirection: "row", alignItems: "center", gap: spacing.md,
+    marginTop: spacing.xl, padding: spacing.md, paddingRight: spacing.lg,
+    borderRadius: radius.md, backgroundColor: colors.danger,
+    shadowColor: colors.danger, shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 3,
   },
-  logoutText: { color: colors.danger, fontWeight: "700", fontSize: 15 },
+  logoutIcon: {
+    width: 38, height: 38, borderRadius: radius.sm,
+    backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center",
+  },
+  logoutText: { color: colors.white, fontWeight: "800", fontSize: 15, flex: 1 },
   version: { textAlign: "center", color: colors.textLight, marginTop: spacing.lg, fontSize: 12 },
 });

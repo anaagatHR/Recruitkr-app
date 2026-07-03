@@ -63,12 +63,12 @@ export default function ApplyModal({ visible, onClose, onSubmit, submitting, use
   }
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={styles.sheetWrap}
-        >
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose} statusBarTranslucent>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.overlay}
+      >
+        <View style={styles.sheetWrap}>
           <View style={styles.sheet}>
             <View style={styles.handle} />
             <View style={styles.head}>
@@ -79,7 +79,11 @@ export default function ApplyModal({ visible, onClose, onSubmit, submitting, use
             </View>
             {jobTitle ? <Text style={styles.sub} numberOfLines={1}>for {jobTitle}</Text> : null}
 
-            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: spacing.lg }}
+            >
               <Field label="Your name" required styles={styles}>
                 <TextInput
                   style={styles.input} value={name} onChangeText={setName}
@@ -153,8 +157,8 @@ export default function ApplyModal({ visible, onClose, onSubmit, submitting, use
               )}
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
-      </View>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

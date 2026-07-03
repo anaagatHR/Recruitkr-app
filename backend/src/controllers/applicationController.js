@@ -60,7 +60,7 @@ export async function jobApplicants(req, res) {
       return res.status(403).json({ message: "You can only view applicants for your own jobs" });
     }
     const apps = await Application.find({ job: job._id })
-      .populate("candidate", "name email phone headline skills experience location resumeUrl about")
+      .populate("candidate", "name email phone headline skills experience location resumeUrl about photoUrl")
       .sort({ createdAt: -1 }) // newest applicants first
       .limit(500);
     // Include the job's type so the app can flag internship applicants.
