@@ -182,14 +182,19 @@ export default function JobListScreen({ navigation }) {
         <View style={isDark ? styles.logoPill : null}>
           <Image source={require("../../assets/logo.png")} style={styles.logo} resizeMode="contain" />
         </View>
-        <TouchableOpacity style={styles.bell} onPress={() => navigation.navigate("Notifications")}>
-          <Ionicons name="notifications-outline" size={22} color={colors.primary} />
-          {notif?.unreadCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{notif.unreadCount > 9 ? "9+" : notif.unreadCount}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        <View style={styles.topActions}>
+          <TouchableOpacity style={styles.bell} onPress={() => navigation.navigate("Saved")}>
+            <Ionicons name="bookmark-outline" size={22} color={colors.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.bell} onPress={() => navigation.navigate("Notifications")}>
+            <Ionicons name="notifications-outline" size={22} color={colors.primary} />
+            {notif?.unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{notif.unreadCount > 9 ? "9+" : notif.unreadCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.hero}>
@@ -498,6 +503,7 @@ const makeStyles = (colors, isDark) => StyleSheet.create({
     backgroundColor: "#FFFFFF", borderRadius: radius.md,
     paddingHorizontal: spacing.sm, paddingVertical: 4,
   },
+  topActions: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   bell: {
     width: 42, height: 42, borderRadius: radius.md, backgroundColor: colors.primaryLight,
     alignItems: "center", justifyContent: "center",

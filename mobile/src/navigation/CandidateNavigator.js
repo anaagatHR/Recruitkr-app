@@ -31,6 +31,7 @@ function HomeStack() {
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="Companies" component={CompaniesScreen} />
       <Stack.Screen name="CompanyDetail" component={CompanyDetailScreen} />
+      <Stack.Screen name="Saved" component={SavedJobsScreen} />
     </Stack.Navigator>
   );
 }
@@ -59,7 +60,6 @@ function MessagesStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Conversations" component={ConversationsScreen} />
       <Stack.Screen name="Chat" component={ChatScreen} />
-      <Stack.Screen name="AIChat" component={AIChatScreen} />
     </Stack.Navigator>
   );
 }
@@ -79,11 +79,11 @@ export default function CandidateNavigator() {
           backgroundColor: colors.surface, borderTopColor: colors.border,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
-        tabBarIcon: ({ color, size }) => {
+        tabBarIcon: ({ color, size, focused }) => {
           const icons = {
             Jobs: "briefcase",
             Internships: "school",
-            Saved: "bookmark",
+            AI: focused ? "sparkles" : "sparkles-outline",
             Chat: "chatbubbles",
             Applications: "document-text",
             Account: "person",
@@ -94,8 +94,8 @@ export default function CandidateNavigator() {
     >
       <Tab.Screen name="Jobs" component={HomeStack} options={{ tabBarLabel: t("jobs") }} />
       <Tab.Screen name="Internships" component={InternStack} options={{ tabBarLabel: "Interns" }} />
-      <Tab.Screen name="Saved" component={SavedJobsScreen} options={{ tabBarLabel: t("saved") }} />
-      <Tab.Screen name="Chat" component={MessagesStack} options={{ tabBarLabel: "Chat" }} />
+      <Tab.Screen name="AI" component={AIChatScreen} options={{ tabBarLabel: "AI Chat" }} />
+      <Tab.Screen name="Chat" component={MessagesStack} options={{ tabBarLabel: "Messages" }} />
       <Tab.Screen name="Applications" component={MyApplicationsScreen} options={{ tabBarLabel: t("applications") }} />
       <Tab.Screen name="Account" component={ProfileStack} options={{ tabBarLabel: t("account") }} />
     </Tab.Navigator>
