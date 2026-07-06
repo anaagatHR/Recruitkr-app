@@ -43,10 +43,10 @@ export default function JobCardSkeleton() {
 
 const makeStyles = (colors, isDark) => StyleSheet.create({
   card: {
-    backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg,
+    backgroundColor: colors.surface, borderRadius: radius.xl, padding: spacing.lg,
     marginBottom: spacing.md, borderWidth: 1, borderColor: colors.border, ...shadow(isDark),
   },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  logo: { width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.border },
+  logo: { width: 52, height: 52, borderRadius: radius.md, backgroundColor: colors.border },
   bar: { backgroundColor: colors.border, borderRadius: 6 },
 });

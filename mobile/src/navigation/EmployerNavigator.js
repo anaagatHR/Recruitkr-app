@@ -8,6 +8,8 @@ import MyJobsScreen from "../screens/employer/MyJobsScreen";
 import PostJobScreen from "../screens/employer/PostJobScreen";
 import ApplicantsScreen from "../screens/employer/ApplicantsScreen";
 import EmployerProfileScreen from "../screens/employer/EmployerProfileScreen";
+import ConversationsScreen from "../screens/shared/ConversationsScreen";
+import ChatScreen from "../screens/shared/ChatScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -18,6 +20,15 @@ function JobsStack() {
       <Stack.Screen name="MyJobs" component={MyJobsScreen} />
       <Stack.Screen name="PostJob" component={PostJobScreen} />
       <Stack.Screen name="Applicants" component={ApplicantsScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function MessagesStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Conversations" component={ConversationsScreen} />
+      <Stack.Screen name="Chat" component={ChatScreen} />
     </Stack.Navigator>
   );
 }
@@ -44,7 +55,7 @@ export default function EmployerNavigator() {
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
         tabBarIcon: ({ color, size }) => {
-          const icons = { "My Jobs": "briefcase", "Post Job": "add-circle", Company: "business" };
+          const icons = { "My Jobs": "briefcase", "Post Job": "add-circle", Chat: "chatbubbles", Company: "business" };
           return <Ionicons name={icons[route.name]} size={size} color={color} />;
         },
       })}
@@ -61,6 +72,7 @@ export default function EmployerNavigator() {
           },
         })}
       />
+      <Tab.Screen name="Chat" component={MessagesStack} />
       <Tab.Screen name="Company" component={EmployerProfileScreen} />
     </Tab.Navigator>
   );

@@ -10,6 +10,7 @@ import jobRoutes from "./routes/jobRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
 import companyRoutes from "./routes/companyRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/messages", messageRoutes);
 
 // 404
 app.use((req, res) => {

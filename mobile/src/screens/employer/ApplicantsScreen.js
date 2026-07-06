@@ -170,7 +170,7 @@ export default function ApplicantsScreen({ route, navigation }) {
                   </View>
                 )}
 
-                {/* Tap-to-call and tap-to-email — quick contact actions */}
+                {/* Tap-to-call, tap-to-email and in-app chat — quick contact actions */}
                 <View style={styles.contactRow}>
                   {phone ? (
                     <TouchableOpacity style={styles.contactBtn} onPress={() => Linking.openURL(`tel:${phone}`)}>
@@ -182,6 +182,20 @@ export default function ApplicantsScreen({ route, navigation }) {
                     <TouchableOpacity style={styles.contactBtnAlt} onPress={() => Linking.openURL(`mailto:${email}`)}>
                       <Ionicons name="mail" size={16} color={colors.primary} />
                       <Text style={styles.contactBtnAltText}>Email</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                  {c._id ? (
+                    <TouchableOpacity
+                      style={styles.contactBtnAlt}
+                      onPress={() =>
+                        navigation.navigate("Chat", {
+                          screen: "Chat",
+                          params: { userId: c._id, name, headline: c.headline, photoUrl: c.photoUrl, jobId },
+                        })
+                      }
+                    >
+                      <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
+                      <Text style={styles.contactBtnAltText}>Chat</Text>
                     </TouchableOpacity>
                   ) : null}
                 </View>

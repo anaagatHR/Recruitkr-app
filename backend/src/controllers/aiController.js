@@ -7,6 +7,7 @@ import {
   rankApplicants,
   generateJobDescription,
   parseResume,
+  chatAssistant,
 } from "../services/aiService.js";
 
 // GET /api/ai/status  — lets the app hide AI UI when the server has no key
@@ -169,6 +170,27 @@ export async function rankJobApplicants(req, res, next) {
       })
       .sort((x, y) => y.score - x.score);
     res.json({ enabled: true, ranked });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/ai/chat  (candidate)
+ * Conversational career assistant.
+ * Body: { messages: [{ role: "user"|"assistant", text }] }
+ */
+export async function chat(req, res, next) {
+  try {
+    if (!aiEnabled) {
+      return res.status(503).json({ message: "The AI assistant is not available right now." });
+    }
+    const messages = Array.isArray(req.body?.messages) ? req.body.messages : [];
+    if (messages.length === 0) {
+      return res.status(400).json({ message: "Please type a message." });
+    }
+    const reply = await chatAssistant(messages, req.user);
+    res.json({ reply });
   } catch (err) {
     next(err);
   }

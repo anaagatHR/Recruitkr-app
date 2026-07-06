@@ -7,6 +7,7 @@ import {
   generateJob,
   resumeToProfile,
   rankJobApplicants,
+  chat,
 } from "../controllers/aiController.js";
 import { protect, restrictTo } from "../middleware/auth.js";
 
@@ -27,6 +28,7 @@ router.get("/status", aiStatus);
 router.get("/recommend", protect, restrictTo("candidate"), aiLimiter, recommendJobs);
 router.get("/match/:jobId", protect, restrictTo("candidate"), aiLimiter, matchJob);
 router.post("/parse-resume", protect, restrictTo("candidate"), aiLimiter, resumeToProfile);
+router.post("/chat", protect, restrictTo("candidate"), aiLimiter, chat);
 
 // Employer features
 router.post("/generate-job", protect, restrictTo("employer"), aiLimiter, generateJob);

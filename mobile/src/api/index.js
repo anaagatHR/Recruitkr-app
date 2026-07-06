@@ -42,4 +42,15 @@ export const aiApi = {
   parseResume: (text) => client.post("/ai/parse-resume", { text }).then((r) => r.data),
   generateJob: (data) => client.post("/ai/generate-job", data).then((r) => r.data),
   rankApplicants: (jobId) => client.get(`/ai/rank/${jobId}`).then((r) => r.data),
+  // messages: [{ role: "user"|"assistant", text }]
+  chat: (messages) => client.post("/ai/chat", { messages }).then((r) => r.data),
+};
+
+// ---- Messages (real 1-on-1 chat between candidate and employer) ----
+export const messagesApi = {
+  conversations: () => client.get("/messages/conversations").then((r) => r.data),
+  with: (userId) => client.get(`/messages/with/${userId}`).then((r) => r.data),
+  send: (toUserId, text, jobId) =>
+    client.post("/messages", { toUserId, text, jobId }).then((r) => r.data),
+  unreadCount: () => client.get("/messages/unread-count").then((r) => r.data),
 };

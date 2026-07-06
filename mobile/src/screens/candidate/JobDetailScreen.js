@@ -173,14 +173,36 @@ export default function JobDetailScreen({ route, navigation }) {
       </ScrollView>
 
       <View style={styles.applyBar}>
-        {alreadyApplied ? (
-          <View style={styles.appliedBox}>
-            <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-            <Text style={styles.appliedText}>You've already applied to this job</Text>
+        <View style={styles.applyRow}>
+          <View style={{ flex: 1 }}>
+            {alreadyApplied ? (
+              <View style={styles.appliedBox}>
+                <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+                <Text style={styles.appliedText}>Already applied</Text>
+              </View>
+            ) : (
+              <Button title="Apply Now" onPress={handleApply} loading={applying} />
+            )}
           </View>
-        ) : (
-          <Button title="Apply Now" onPress={handleApply} loading={applying} />
-        )}
+          {user?.role === "candidate" && job.postedBy?._id ? (
+            <TouchableOpacity
+              style={styles.msgBtn}
+              onPress={() =>
+                navigation.navigate("Chat", {
+                  screen: "Chat",
+                  params: {
+                    userId: job.postedBy._id,
+                    name: job.postedBy.companyName || job.company || job.postedBy.name,
+                    jobId,
+                  },
+                })
+              }
+            >
+              <Ionicons name="chatbubble-ellipses-outline" size={22} color={colors.primary} />
+              <Text style={styles.msgBtnText}>Chat</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
 
       <ApplyModal
@@ -277,4 +299,11 @@ const makeStyles = (colors) => StyleSheet.create({
     height: 52, borderRadius: radius.md, backgroundColor: colors.accentLight,
   },
   appliedText: { color: colors.success, fontWeight: "700", fontSize: 15 },
+  applyRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+  msgBtn: {
+    width: 64, height: 52, borderRadius: radius.md,
+    borderWidth: 1, borderColor: colors.primary, backgroundColor: colors.primaryLight,
+    alignItems: "center", justifyContent: "center",
+  },
+  msgBtnText: { color: colors.primary, fontSize: 11, fontWeight: "700", marginTop: 2 },
 });

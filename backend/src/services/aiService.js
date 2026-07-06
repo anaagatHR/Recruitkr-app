@@ -165,6 +165,65 @@ export async function parseResume(resumeText) {
   };
 }
 
+/* ------------------------------------------------------------------ */
+/* 5) Career assistant chatbot — free-form conversation for candidates */
+/* ------------------------------------------------------------------ */
+/**
+ * Conversational career helper. Takes the recent chat history plus the
+ * candidate's profile for context and returns a plain-text reply.
+ *
+ * @param {Array<{role: "user"|"assistant", text: string}>} history
+ * @param {object} candidate  the logged-in candidate (for personalisation)
+ */
+export async function chatAssistant(history, candidate = {}) {
+  ensureEnabled();
+
+  const profile =
+    `The user you are helping (keep it in mind, don't repeat it back unprompted):\n` +
+    `- Name: ${candidate.name || "N/A"}\n` +
+    `- Headline: ${candidate.headline || "N/A"}\n` +
+    `- Skills: ${(candidate.skills || []).join(", ") || "N/A"}\n` +
+    `- Experience: ${candidate.experience || "N/A"}\n` +
+    `- Location: ${candidate.location || "N/A"}`;
+
+  const system =
+    "You are RecruitKR Assistant, a friendly career helper for job seekers in India. " +
+    "Help with finding jobs, improving resumes, interview preparation, skill advice, " +
+    "and understanding the hiring process. Keep replies short, practical and encouraging. " +
+    "You can reply in English, Hindi, or Hinglish — mirror the language the user writes in. " +
+    "You are inside the RecruitKR app; suggest using its Jobs, Internships and Companies tabs " +
+    "when relevant. Do NOT invent specific job openings, salaries, or company names — instead " +
+    "tell the user how to search for them in the app. Never ask for passwords or payment.\n\n" +
+    profile;
+
+  // Keep only the last ~12 turns to bound tokens; map to the API shape.
+  const messages = (history || [])
+    .filter((m) => m && m.text && (m.role === "user" || m.role === "assistant"))
+    .slice(-12)
+    .map((m) => ({ role: m.role, content: String(m.text).slice(0, 2000) }));
+
+  if (messages.length === 0 || messages[messages.length - 1].role !== "user") {
+    const e = new Error("The last message must be from the user.");
+    e.status = 400;
+    throw e;
+  }
+
+  const msg = await client.messages.create({
+    model: MODEL,
+    max_tokens: 600,
+    system,
+    messages,
+  });
+
+  const reply = (msg.content || [])
+    .filter((b) => b.type === "text")
+    .map((b) => b.text)
+    .join("")
+    .trim();
+
+  return reply || "Sorry, I couldn't come up with a reply. Please try again.";
+}
+
 /* ----------------------------- helpers ----------------------------- */
 function clampScore(n) {
   const v = Math.round(Number(n));

@@ -16,6 +16,9 @@ import Job from "./models/Job.js";
 import authRoutes from "./routes/authRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
+import companyRoutes from "./routes/companyRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
 
 async function seedDemoData() {
   const employer = await User.create({
@@ -71,6 +74,9 @@ async function main() {
   app.use("/api/auth", authRoutes);
   app.use("/api/jobs", jobRoutes);
   app.use("/api/applications", applicationRoutes);
+  app.use("/api/companies", companyRoutes);
+  app.use("/api/ai", aiRoutes);
+  app.use("/api/messages", messageRoutes);
   app.use((req, res) => res.status(404).json({ message: "Route not found" }));
 
   const PORT = process.env.PORT || 5000;

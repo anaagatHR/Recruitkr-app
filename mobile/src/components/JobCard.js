@@ -18,7 +18,7 @@ const TYPE_LABELS = {
 };
 
 function formatSalary(min, max) {
-  if (!min && !max) return "Salary not disclosed";
+  if (!min && !max) return "Not disclosed";
   const f = (n) => (n >= 100000 ? `${(n / 100000).toFixed(1)}L` : `${Math.round(n / 1000)}K`);
   if (min && max) return `₹${f(min)} - ₹${f(max)}`;
   return `₹${f(min || max)}`;
@@ -71,53 +71,56 @@ function JobCard({ job, onPress, showSave = true, index = 0 }) {
       }}
     >
       <TouchableOpacity activeOpacity={0.9} onPress={onPress} onPressIn={pressIn} onPressOut={pressOut} style={styles.card}>
+        {/* Top: logo + title/company, with a floating bookmark */}
         <View style={styles.header}>
           <View style={styles.logo}>
             <Text style={styles.logoText}>{initial}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.title} numberOfLines={1}>{job.title}</Text>
+            <Text style={styles.title} numberOfLines={2}>{job.title}</Text>
             <Text style={styles.company} numberOfLines={1}>{job.company}</Text>
           </View>
           {showSave && saved ? (
             <TouchableOpacity
               onPress={onToggleSave}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={styles.saveBtn}
+              style={[styles.saveBtn, isSaved && styles.saveBtnActive]}
             >
               <Ionicons
                 name={isSaved ? "bookmark" : "bookmark-outline"}
-                size={22}
-                color={isSaved ? colors.accent : colors.textLight}
+                size={18}
+                color={isSaved ? colors.white : colors.textMuted}
               />
             </TouchableOpacity>
           ) : null}
         </View>
 
-        <View style={styles.badgeRow}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{TYPE_LABELS[job.jobType] || job.jobType}</Text>
+        {/* Tag row: type + location + category as soft pills */}
+        <View style={styles.tagRow}>
+          <View style={styles.tagPrimary}>
+            <Text style={styles.tagPrimaryText}>{TYPE_LABELS[job.jobType] || job.jobType}</Text>
           </View>
-          <View style={styles.easyBadge}>
-            <Ionicons name="flash" size={11} color={colors.accentDark} />
-            <Text style={styles.easyText}>Easy Apply</Text>
+          <View style={styles.tag}>
+            <Ionicons name="location-outline" size={12} color={colors.textMuted} />
+            <Text style={styles.tagText} numberOfLines={1}>{job.location}</Text>
           </View>
-        </View>
-
-        <View style={styles.metaRow}>
-          <View style={styles.meta}>
-            <Ionicons name="location-outline" size={14} color={colors.textMuted} />
-            <Text style={styles.metaText}>{job.location}</Text>
-          </View>
-          <View style={styles.meta}>
-            <Ionicons name="briefcase-outline" size={14} color={colors.textMuted} />
-            <Text style={styles.metaText}>{job.category}</Text>
+          <View style={styles.tag}>
+            <Ionicons name="briefcase-outline" size={12} color={colors.textMuted} />
+            <Text style={styles.tagText} numberOfLines={1}>{job.category}</Text>
           </View>
         </View>
 
+        {/* Bottom bar: salary pill on the left, meta on the right */}
         <View style={styles.footer}>
-          <Text style={styles.salary}>{formatSalary(job.salaryMin, job.salaryMax)}</Text>
-          {job.experience ? <Text style={styles.exp}>{job.experience}</Text> : null}
+          <View style={styles.salaryPill}>
+            <Text style={styles.salaryText}>{formatSalary(job.salaryMin, job.salaryMax)}</Text>
+          </View>
+          <View style={styles.footerMeta}>
+            <View style={styles.easyBadge}>
+              <Ionicons name="flash" size={11} color={colors.accentDark} />
+              <Text style={styles.easyText}>Easy Apply</Text>
+            </View>
+          </View>
         </View>
 
         <View style={styles.subFooter}>
@@ -151,45 +154,63 @@ export default memo(JobCard, (prev, next) =>
 const makeStyles = (colors, isDark) => StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     padding: spacing.lg,
     marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
     ...shadow(isDark),
   },
-  header: { flexDirection: "row", alignItems: "center", marginBottom: spacing.sm },
+  header: { flexDirection: "row", alignItems: "flex-start", marginBottom: spacing.md },
   logo: {
-    width: 44, height: 44, borderRadius: radius.md,
+    width: 52, height: 52, borderRadius: radius.md,
     backgroundColor: colors.primaryLight,
     alignItems: "center", justifyContent: "center", marginRight: spacing.md,
   },
-  logoText: { color: colors.primary, fontWeight: "800", fontSize: 18 },
-  title: { fontSize: 16, fontWeight: "700", color: colors.text },
-  company: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
-  saveBtn: { padding: 2 },
-  badgeRow: { flexDirection: "row", marginBottom: spacing.md, gap: spacing.sm },
-  badge: {
+  logoText: { color: colors.primary, fontWeight: "800", fontSize: 22 },
+  title: { fontSize: 16, fontWeight: "800", color: colors.text, lineHeight: 21 },
+  company: { fontSize: 13, color: colors.textMuted, marginTop: 3 },
+  saveBtn: {
+    width: 36, height: 36, borderRadius: radius.md,
+    backgroundColor: colors.background,
+    alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: colors.border,
+  },
+  saveBtnActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+
+  tagRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.md },
+  tagPrimary: {
     backgroundColor: colors.primaryLight,
-    paddingHorizontal: spacing.sm, paddingVertical: 4,
+    paddingHorizontal: spacing.md, paddingVertical: 6,
     borderRadius: radius.pill,
   },
-  badgeText: { color: colors.primary, fontSize: 11, fontWeight: "700" },
+  tagPrimaryText: { color: colors.primary, fontSize: 11, fontWeight: "800" },
+  tag: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.md, paddingVertical: 6,
+    borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border,
+    maxWidth: "45%",
+  },
+  tagText: { fontSize: 11, color: colors.textMuted, fontWeight: "600" },
+
+  footer: {
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+    borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.md,
+  },
+  salaryPill: {
+    backgroundColor: colors.accentLight,
+    paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: radius.md,
+  },
+  salaryText: { fontSize: 14, fontWeight: "800", color: colors.accentDark },
+  footerMeta: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   easyBadge: {
     flexDirection: "row", alignItems: "center", gap: 3,
     backgroundColor: colors.accentLight, paddingHorizontal: spacing.sm, paddingVertical: 4,
     borderRadius: radius.pill,
   },
   easyText: { color: colors.accentDark, fontSize: 11, fontWeight: "700" },
-  metaRow: { flexDirection: "row", gap: spacing.lg, marginBottom: spacing.md },
-  meta: { flexDirection: "row", alignItems: "center", gap: 4 },
-  metaText: { fontSize: 13, color: colors.textMuted },
-  footer: {
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
-    borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.md,
-  },
-  salary: { fontSize: 14, fontWeight: "700", color: colors.primary },
-  exp: { fontSize: 12, color: colors.textMuted },
+
   subFooter: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: spacing.sm },
   subText: { fontSize: 11, color: colors.textLight },
 });
