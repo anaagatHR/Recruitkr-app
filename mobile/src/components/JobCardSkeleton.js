@@ -30,13 +30,18 @@ export default function JobCardSkeleton() {
       <View style={styles.row}>
         <Animated.View style={[styles.logo, { opacity }]} />
         <View style={{ flex: 1 }}>
-          <Bar w="70%" h={14} />
-          <Bar w="45%" mt={8} />
+          <Bar w="65%" h={14} />
+          <Bar w="40%" mt={8} />
         </View>
+        <Bar w={54} h={14} />
       </View>
-      <Bar w="35%" h={20} mt={14} />
-      <Bar w="90%" mt={14} />
-      <Bar w="50%" mt={10} />
+      <Bar w="55%" mt={16} />
+      <View style={styles.divider} />
+      <View style={styles.row}>
+        <Bar w="30%" h={18} />
+        <View style={{ flex: 1 }} />
+        <Bar w="20%" h={10} />
+      </View>
     </View>
   );
 }
@@ -47,6 +52,7 @@ const makeStyles = (colors, isDark) => StyleSheet.create({
     marginBottom: spacing.md, borderWidth: 1, borderColor: colors.border, ...shadow(isDark),
   },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  logo: { width: 52, height: 52, borderRadius: radius.md, backgroundColor: colors.border },
+  logo: { width: 48, height: 48, borderRadius: radius.md, backgroundColor: colors.border },
   bar: { backgroundColor: colors.border, borderRadius: 6 },
+  divider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.md },
 });

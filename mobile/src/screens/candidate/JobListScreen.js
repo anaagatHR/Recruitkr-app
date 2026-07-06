@@ -520,8 +520,8 @@ const makeStyles = (colors, isDark) => StyleSheet.create({
   heroSub: { color: "rgba(255,255,255,0.85)", fontSize: 13, marginTop: spacing.sm, lineHeight: 19 },
   searchBar: {
     flexDirection: "row", alignItems: "center", gap: spacing.sm,
-    backgroundColor: colors.white, paddingHorizontal: spacing.lg, height: 50,
-    borderRadius: radius.md, marginTop: spacing.lg,
+    backgroundColor: colors.white, paddingHorizontal: spacing.lg, height: 54,
+    borderRadius: radius.pill, marginTop: spacing.lg,
   },
   searchInput: { flex: 1, fontSize: 15, color: "#1A2330" },
   filterBtn: {
@@ -556,7 +556,7 @@ const makeStyles = (colors, isDark) => StyleSheet.create({
 
   catGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginTop: spacing.md },
   catCard: {
-    width: "48%", backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg,
+    width: "48%", backgroundColor: colors.surface, borderRadius: radius.xl, padding: spacing.lg,
     marginBottom: spacing.md, borderWidth: 1, borderColor: colors.border,
     ...shadow(isDark),
   },
@@ -572,14 +572,14 @@ const makeStyles = (colors, isDark) => StyleSheet.create({
   },
   companiesText: { flex: 1, color: colors.primary, fontWeight: "700", fontSize: 15 },
   recentCard: {
-    width: 170, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md,
+    width: 170, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md,
     marginRight: spacing.sm, borderWidth: 1, borderColor: colors.border,
   },
   recentTitle: { fontSize: 14, fontWeight: "700", color: colors.text, minHeight: 36 },
   recentCompany: { fontSize: 12, color: colors.textMuted, marginTop: 4 },
   recentLoc: { fontSize: 11, color: colors.textLight, marginTop: 2 },
   recoCard: {
-    width: 190, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md,
+    width: 190, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md,
     marginRight: spacing.sm, borderWidth: 1, borderColor: colors.border,
   },
   recoTop: {

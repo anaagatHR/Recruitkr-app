@@ -9,19 +9,20 @@ import { postedAgo } from "../utils/time";
 import { tap } from "../utils/haptics";
 
 const TYPE_LABELS = {
-  "full-time": "Full-time",
-  "part-time": "Part-time",
+  "full-time": "Full time",
+  "part-time": "Part time",
   remote: "Remote",
   internship: "Internship",
   freelance: "Freelance",
   gig: "Gig",
 };
 
+// Envato-style salary: compact monthly figure like "₹1.2L/mo" / "₹35K/mo".
 function formatSalary(min, max) {
-  if (!min && !max) return "Not disclosed";
+  if (!min && !max) return null;
   const f = (n) => (n >= 100000 ? `${(n / 100000).toFixed(1)}L` : `${Math.round(n / 1000)}K`);
-  if (min && max) return `₹${f(min)} - ₹${f(max)}`;
-  return `₹${f(min || max)}`;
+  const val = min && max ? max : min || max;
+  return `₹${f(val)}/mo`;
 }
 
 function JobCard({ job, onPress, showSave = true, index = 0 }) {
@@ -31,6 +32,7 @@ function JobCard({ job, onPress, showSave = true, index = 0 }) {
   const toast = useToast();
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors, isDark), [colors, isDark]);
+  const salary = formatSalary(job.salaryMin, job.salaryMax);
 
   // Staggered entrance: fade + slide up, driven off mount only.
   const anim = useRef(new Animated.Value(0)).current;
@@ -71,67 +73,59 @@ function JobCard({ job, onPress, showSave = true, index = 0 }) {
       }}
     >
       <TouchableOpacity activeOpacity={0.9} onPress={onPress} onPressIn={pressIn} onPressOut={pressOut} style={styles.card}>
-        {/* Top: logo + title/company, with a floating bookmark */}
-        <View style={styles.header}>
+        {/* Row 1: logo + title/company on the left, bookmark + salary on the right */}
+        <View style={styles.topRow}>
           <View style={styles.logo}>
             <Text style={styles.logoText}>{initial}</Text>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.title} numberOfLines={2}>{job.title}</Text>
+          <View style={styles.titleWrap}>
+            <Text style={styles.title} numberOfLines={1}>{job.title}</Text>
             <Text style={styles.company} numberOfLines={1}>{job.company}</Text>
           </View>
-          {showSave && saved ? (
-            <TouchableOpacity
-              onPress={onToggleSave}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={[styles.saveBtn, isSaved && styles.saveBtnActive]}
-            >
-              <Ionicons
-                name={isSaved ? "bookmark" : "bookmark-outline"}
-                size={18}
-                color={isSaved ? colors.white : colors.textMuted}
-              />
-            </TouchableOpacity>
-          ) : null}
-        </View>
-
-        {/* Tag row: type + location + category as soft pills */}
-        <View style={styles.tagRow}>
-          <View style={styles.tagPrimary}>
-            <Text style={styles.tagPrimaryText}>{TYPE_LABELS[job.jobType] || job.jobType}</Text>
-          </View>
-          <View style={styles.tag}>
-            <Ionicons name="location-outline" size={12} color={colors.textMuted} />
-            <Text style={styles.tagText} numberOfLines={1}>{job.location}</Text>
-          </View>
-          <View style={styles.tag}>
-            <Ionicons name="briefcase-outline" size={12} color={colors.textMuted} />
-            <Text style={styles.tagText} numberOfLines={1}>{job.category}</Text>
+          <View style={styles.rightCol}>
+            {showSave && saved ? (
+              <TouchableOpacity
+                onPress={onToggleSave}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons
+                  name={isSaved ? "bookmark" : "bookmark-outline"}
+                  size={20}
+                  color={isSaved ? colors.accent : colors.textLight}
+                />
+              </TouchableOpacity>
+            ) : null}
+            {salary ? <Text style={styles.salary}>{salary}</Text> : null}
           </View>
         </View>
 
-        {/* Bottom bar: salary pill on the left, meta on the right */}
+        {/* Row 2: location · type · category — light meta line */}
+        <View style={styles.metaRow}>
+          <View style={styles.meta}>
+            <Ionicons name="location-outline" size={13} color={colors.textMuted} />
+            <Text style={styles.metaText} numberOfLines={1}>{job.location}</Text>
+          </View>
+          <View style={styles.dot} />
+          <View style={styles.meta}>
+            <Ionicons name="time-outline" size={13} color={colors.textMuted} />
+            <Text style={styles.metaText} numberOfLines={1}>{TYPE_LABELS[job.jobType] || job.jobType}</Text>
+          </View>
+        </View>
+
+        {/* Row 3: category chip + easy-apply + posted/applicants */}
         <View style={styles.footer}>
-          <View style={styles.salaryPill}>
-            <Text style={styles.salaryText}>{formatSalary(job.salaryMin, job.salaryMax)}</Text>
-          </View>
-          <View style={styles.footerMeta}>
-            <View style={styles.easyBadge}>
+          <View style={styles.chipsRow}>
+            <View style={styles.catChip}>
+              <Text style={styles.catChipText} numberOfLines={1}>{job.category}</Text>
+            </View>
+            <View style={styles.easyChip}>
               <Ionicons name="flash" size={11} color={colors.accentDark} />
               <Text style={styles.easyText}>Easy Apply</Text>
             </View>
           </View>
-        </View>
-
-        <View style={styles.subFooter}>
-          {job.createdAt ? (
-            <Text style={styles.subText}>{postedAgo(job.createdAt)}</Text>
-          ) : <View />}
-          {typeof job.applicantCount === "number" ? (
-            <Text style={styles.subText}>
-              {job.applicantCount} applicant{job.applicantCount !== 1 ? "s" : ""}
-            </Text>
-          ) : null}
+          <Text style={styles.posted}>
+            {job.createdAt ? postedAgo(job.createdAt) : ""}
+          </Text>
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -161,56 +155,41 @@ const makeStyles = (colors, isDark) => StyleSheet.create({
     borderColor: colors.border,
     ...shadow(isDark),
   },
-  header: { flexDirection: "row", alignItems: "flex-start", marginBottom: spacing.md },
+  topRow: { flexDirection: "row", alignItems: "center" },
   logo: {
-    width: 52, height: 52, borderRadius: radius.md,
+    width: 48, height: 48, borderRadius: radius.md,
     backgroundColor: colors.primaryLight,
     alignItems: "center", justifyContent: "center", marginRight: spacing.md,
   },
-  logoText: { color: colors.primary, fontWeight: "800", fontSize: 22 },
-  title: { fontSize: 16, fontWeight: "800", color: colors.text, lineHeight: 21 },
+  logoText: { color: colors.primary, fontWeight: "800", fontSize: 20 },
+  titleWrap: { flex: 1, paddingRight: spacing.sm },
+  title: { fontSize: 16, fontWeight: "800", color: colors.text },
   company: { fontSize: 13, color: colors.textMuted, marginTop: 3 },
-  saveBtn: {
-    width: 36, height: 36, borderRadius: radius.md,
-    backgroundColor: colors.background,
-    alignItems: "center", justifyContent: "center",
-    borderWidth: 1, borderColor: colors.border,
-  },
-  saveBtnActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+  rightCol: { alignItems: "flex-end", gap: spacing.sm },
+  salary: { fontSize: 14, fontWeight: "800", color: colors.accentDark },
 
-  tagRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.md },
-  tagPrimary: {
-    backgroundColor: colors.primaryLight,
-    paddingHorizontal: spacing.md, paddingVertical: 6,
-    borderRadius: radius.pill,
-  },
-  tagPrimaryText: { color: colors.primary, fontSize: 11, fontWeight: "800" },
-  tag: {
-    flexDirection: "row", alignItems: "center", gap: 4,
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.md, paddingVertical: 6,
-    borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border,
-    maxWidth: "45%",
-  },
-  tagText: { fontSize: 11, color: colors.textMuted, fontWeight: "600" },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginTop: spacing.md },
+  meta: { flexDirection: "row", alignItems: "center", gap: 4, flexShrink: 1 },
+  metaText: { fontSize: 12, color: colors.textMuted, fontWeight: "600" },
+  dot: { width: 3, height: 3, borderRadius: 2, backgroundColor: colors.textLight },
 
   footer: {
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
-    borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.md,
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginTop: spacing.md, paddingTop: spacing.md,
+    borderTopWidth: 1, borderTopColor: colors.border,
   },
-  salaryPill: {
-    backgroundColor: colors.accentLight,
-    paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: radius.md,
+  chipsRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flex: 1 },
+  catChip: {
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: spacing.md, paddingVertical: 5, borderRadius: radius.pill,
+    maxWidth: "55%",
   },
-  salaryText: { fontSize: 14, fontWeight: "800", color: colors.accentDark },
-  footerMeta: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  easyBadge: {
+  catChipText: { color: colors.primary, fontSize: 11, fontWeight: "700" },
+  easyChip: {
     flexDirection: "row", alignItems: "center", gap: 3,
-    backgroundColor: colors.accentLight, paddingHorizontal: spacing.sm, paddingVertical: 4,
+    backgroundColor: colors.accentLight, paddingHorizontal: spacing.md, paddingVertical: 5,
     borderRadius: radius.pill,
   },
   easyText: { color: colors.accentDark, fontSize: 11, fontWeight: "700" },
-
-  subFooter: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: spacing.sm },
-  subText: { fontSize: 11, color: colors.textLight },
+  posted: { fontSize: 11, color: colors.textLight, marginLeft: spacing.sm },
 });
