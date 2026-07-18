@@ -2,6 +2,7 @@
   "expo": {
     "name": "RecruitKR",
     "slug": "recruitkr",
+    "owner": "recruitkr.com",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
@@ -16,7 +17,9 @@
     ],
     "android": {
       "package": "com.recruitkr.app",
-      "permissions": ["POST_NOTIFICATIONS"],
+      "permissions": [
+        "POST_NOTIFICATIONS"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
@@ -44,7 +47,7 @@
         "uploadPreset": "ml_default"
       },
       "eas": {
-        "projectId": "e7cdd70e-df9d-434b-88df-26ff2d456404"
+        "projectId": "a3e2e09d-bae2-4b0f-bfd9-184489a1a249"
       }
     }
   }
