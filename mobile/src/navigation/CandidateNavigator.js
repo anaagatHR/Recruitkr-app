@@ -13,6 +13,7 @@ import SavedJobsScreen from "../screens/candidate/SavedJobsScreen";
 import MyApplicationsScreen from "../screens/candidate/MyApplicationsScreen";
 import ProfileScreen from "../screens/candidate/ProfileScreen";
 import EditProfileScreen from "../screens/candidate/EditProfileScreen";
+import ResumeBuilderScreen from "../screens/candidate/ResumeBuilderScreen";
 import NotificationsScreen from "../screens/candidate/NotificationsScreen";
 import CompaniesScreen from "../screens/candidate/CompaniesScreen";
 import CompanyDetailScreen from "../screens/candidate/CompanyDetailScreen";
@@ -51,6 +52,7 @@ function ProfileStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+      <Stack.Screen name="ResumeBuilder" component={ResumeBuilderScreen} />
     </Stack.Navigator>
   );
 }

@@ -14,6 +14,7 @@ import * as haptics from "../../utils/haptics";
 
 const ACTIONS = [
   { status: "shortlisted", label: "Shortlist", icon: "star-outline" },
+  { status: "interview", label: "Interview", icon: "people-outline" },
   { status: "hired", label: "Hire", icon: "checkmark-circle-outline" },
   { status: "rejected", label: "Reject", icon: "close-circle-outline" },
 ];

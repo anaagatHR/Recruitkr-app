@@ -104,6 +104,22 @@ export default function ProfileScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
+        {/* Resume Builder */}
+        <TouchableOpacity
+          style={styles.settingRow}
+          onPress={() => navigation.navigate("ResumeBuilder")}
+          activeOpacity={0.85}
+        >
+          <View style={styles.infoIcon}>
+            <Ionicons name="create-outline" size={18} color={colors.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.infoLabel}>Resume Builder</Text>
+            <Text style={styles.infoValue}>Build, score & download your resume</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textLight} />
+        </TouchableOpacity>
+
         {/* Theme toggle */}
         <TouchableOpacity style={styles.settingRow} onPress={toggleTheme}>
           <View style={styles.infoIcon}>

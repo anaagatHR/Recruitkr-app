@@ -2,6 +2,13 @@ import React, { useRef, useEffect, useMemo } from "react";
 import { View, StyleSheet, Animated } from "react-native";
 import { radius, spacing, shadow } from "../theme/colors";
 import { useTheme } from "../context/ThemeContext";
+import { isWeb, cssLoop } from "../utils/webAnim";
+
+// CSS equivalent of the shimmer, for web. Runs off the JS thread.
+const WEB_SHIMMER = cssLoop(
+  { "0%": { opacity: 0.4 }, "50%": { opacity: 0.8 }, "100%": { opacity: 0.4 } },
+  1.4
+);
 
 // Animated shimmering placeholder shown while jobs load (Indeed/LinkedIn style).
 export default function JobCardSkeleton() {
@@ -10,6 +17,9 @@ export default function JobCardSkeleton() {
   const shimmer = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Several skeletons render at once; on web each Animated.loop would run on
+    // the JS thread (no native driver there) and together they block touches.
+    if (isWeb) return;
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(shimmer, { toValue: 1, duration: 700, useNativeDriver: true }),
@@ -21,14 +31,16 @@ export default function JobCardSkeleton() {
   }, []);
 
   const opacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.4, 0.8] });
+  // On web the opacity comes from the CSS keyframes instead of the Animated value.
+  const pulse = isWeb ? WEB_SHIMMER : { opacity };
   const Bar = ({ w, h = 12, mt = 0 }) => (
-    <Animated.View style={[styles.bar, { width: w, height: h, marginTop: mt, opacity }]} />
+    <Animated.View style={[styles.bar, { width: w, height: h, marginTop: mt }, pulse]} />
   );
 
   return (
     <View style={styles.card}>
       <View style={styles.row}>
-        <Animated.View style={[styles.logo, { opacity }]} />
+        <Animated.View style={[styles.logo, pulse]} />
         <View style={{ flex: 1 }}>
           <Bar w="65%" h={14} />
           <Bar w="40%" mt={8} />

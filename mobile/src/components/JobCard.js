@@ -1,7 +1,9 @@
 import React, { useRef, useEffect, useMemo, useCallback, memo } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { radius, spacing, shadow } from "../theme/colors";
+
+const IS_WEB = Platform.OS === "web";
 import { useSavedJobs } from "../context/SavedJobsContext";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../context/ToastContext";
@@ -25,18 +27,20 @@ function formatSalary(min, max) {
   return `₹${f(val)}/mo`;
 }
 
-function JobCard({ job, onPress, showSave = true, index = 0 }) {
+function JobCard({ job, onPress, showSave = true, index = 0, flat = false }) {
   const initial = (job.company || "?").charAt(0).toUpperCase();
   const saved = useSavedJobs();
   const isSaved = saved?.isSaved(job._id);
   const toast = useToast();
   const { colors, isDark } = useTheme();
-  const styles = useMemo(() => makeStyles(colors, isDark), [colors, isDark]);
+  const styles = useMemo(() => makeStyles(colors, isDark, flat), [colors, isDark, flat]);
   const salary = formatSalary(job.salaryMin, job.salaryMax);
 
   // Staggered entrance: fade + slide up, driven off mount only.
-  const anim = useRef(new Animated.Value(0)).current;
+  // Skipped on web (JS-driven Animated there → warnings + main-thread work).
+  const anim = useRef(new Animated.Value(IS_WEB ? 1 : 0)).current;
   useEffect(() => {
+    if (IS_WEB) return;
     Animated.timing(anim, {
       toValue: 1,
       duration: 350,
@@ -45,16 +49,16 @@ function JobCard({ job, onPress, showSave = true, index = 0 }) {
     }).start();
   }, []);
 
-  // Press scale feedback
+  // Press scale feedback — skipped on web for the same reason as the entrance.
   const scale = useRef(new Animated.Value(1)).current;
-  const pressIn = useCallback(
-    () => Animated.spring(scale, { toValue: 0.97, useNativeDriver: true }).start(),
-    []
-  );
-  const pressOut = useCallback(
-    () => Animated.spring(scale, { toValue: 1, friction: 5, useNativeDriver: true }).start(),
-    []
-  );
+  const pressIn = useCallback(() => {
+    if (IS_WEB) return;
+    Animated.spring(scale, { toValue: 0.97, useNativeDriver: true }).start();
+  }, []);
+  const pressOut = useCallback(() => {
+    if (IS_WEB) return;
+    Animated.spring(scale, { toValue: 1, friction: 5, useNativeDriver: true }).start();
+  }, []);
   const onToggleSave = useCallback(() => {
     tap();
     const wasSaved = saved?.isSaved(job._id);
@@ -142,10 +146,11 @@ export default memo(JobCard, (prev, next) =>
   prev.job.applicantCount === next.job.applicantCount &&
   prev.onPress === next.onPress &&
   prev.showSave === next.showSave &&
-  prev.index === next.index
+  prev.index === next.index &&
+  prev.flat === next.flat
 );
 
-const makeStyles = (colors, isDark) => StyleSheet.create({
+const makeStyles = (colors, isDark, flat) => StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.xl,
@@ -153,7 +158,9 @@ const makeStyles = (colors, isDark) => StyleSheet.create({
     marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    ...shadow(isDark),
+    // Shadow skipped when `flat` (e.g. inside a moving marquee on web, where a
+    // moving box-shadow forces per-frame GPU repaints).
+    ...(flat ? null : shadow(isDark)),
   },
   topRow: { flexDirection: "row", alignItems: "center" },
   logo: {

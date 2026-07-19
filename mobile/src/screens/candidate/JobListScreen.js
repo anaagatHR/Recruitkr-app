@@ -8,7 +8,10 @@ import JobCard from "../../components/JobCard";
 import JobCardSkeleton from "../../components/JobCardSkeleton";
 import FilterSheet from "../../components/FilterSheet";
 import { Loading, EmptyState } from "../../components/Common";
-import { jobsApi, aiApi } from "../../api";
+import RecommendedRail from "../../components/RecommendedRail";
+import { jobsApi, aiApi, applicationsApi } from "../../api";
+import { getRecommendations } from "../../utils/recommend";
+import { isWeb } from "../../utils/webAnim";
 import { useAIEnabled } from "../../hooks/useAIEnabled";
 import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../i18n/LanguageContext";
@@ -74,12 +77,14 @@ export default function JobListScreen({ navigation }) {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ minSalary: "", postedWithin: "", sort: "newest" });
   const [recommended, setRecommended] = useState([]);
+  const [recoIsAI, setRecoIsAI] = useState(false);
   const activeFilterCount =
     (filters.minSalary ? 1 : 0) + (filters.postedWithin ? 1 : 0) + (filters.sort !== "newest" ? 1 : 0);
 
-  // Fade-in animation on mount
-  const fade = useRef(new Animated.Value(0)).current;
+  // Fade-in animation on mount (skipped on web — no native driver there).
+  const fade = useRef(new Animated.Value(isWeb ? 1 : 0)).current;
   useEffect(() => {
+    if (isWeb) return;
     Animated.timing(fade, { toValue: 1, duration: 500, useNativeDriver: true }).start();
   }, []);
 
@@ -102,9 +107,10 @@ export default function JobListScreen({ navigation }) {
     alertsCtx?.addAlert(label, currentParams());
   }
 
-  // Recommended jobs. When AI is enabled, use the Claude-powered matcher (returns
-  // a fit score per job); otherwise fall back to a keyword search on the
-  // candidate's top skill / location so the section still works.
+  // Recommended jobs. When AI is enabled, use the Claude-powered matcher; if it
+  // is off or fails, fall back to the local rule-based scorer in
+  // utils/recommend.js, which ranks on skills / location / past applications.
+  // Both paths produce { ...job, matchScore, matchReasons }.
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -114,14 +120,22 @@ export default function JobListScreen({ navigation }) {
           if (!alive) return;
           const recs = (res.recommendations || [])
             .filter((r) => r.job)
-            .map((r) => ({ ...r.job, aiScore: r.score, aiReason: r.reason }));
-          if (recs.length) { setRecommended(recs); return; }
+            .map((r) => ({ ...r.job, matchScore: r.score, matchReasons: r.reason ? [r.reason] : [] }));
+          if (recs.length) { setRecommended(recs); setRecoIsAI(true); return; }
         }
-        const skill = user?.skills?.[0];
-        const term = skill || user?.location;
-        if (!term) return;
-        const res = await jobsApi.list({ search: term, limit: 10 });
-        if (alive) setRecommended(res.jobs || []);
+        // Rule-based fallback: score a pool of recent jobs against the profile.
+        const [{ jobs: pool }, apps] = await Promise.all([
+          jobsApi.list({ limit: 60 }),
+          applicationsApi.mine().catch(() => ({ applications: [] })),
+        ]);
+        if (!alive) return;
+        const recs = await getRecommendations({
+          user,
+          jobs: pool || [],
+          applications: apps.applications || [],
+          limit: 10,
+        });
+        if (alive) { setRecommended(recs); setRecoIsAI(false); }
       } catch (e) { /* ignore — section just stays empty */ }
     })();
     return () => { alive = false; };
@@ -272,46 +286,13 @@ export default function JobListScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Recommended for you */}
-      {recommended.length > 0 && (
-        <View style={[styles.section, { paddingBottom: 0 }]}>
-          <View style={styles.recoHead}>
-            <Text style={styles.sectionTitle}>Recommended for you</Text>
-            {aiEnabled && (
-              <View style={styles.aiPill}>
-                <Ionicons name="sparkles" size={11} color={colors.primary} />
-                <Text style={styles.aiPillText}>AI</Text>
-              </View>
-            )}
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: spacing.sm, marginHorizontal: -spacing.lg, paddingHorizontal: spacing.lg }}>
-            {recommended.map((j) => (
-              <TouchableOpacity
-                key={j._id}
-                style={styles.recoCard}
-                activeOpacity={0.85}
-                onPress={() => navigation.navigate("JobDetail", { jobId: j._id })}
-              >
-                <View style={styles.recoTop}>
-                  <View style={styles.recoLogo}>
-                    <Text style={styles.recoLogoText}>{(j.company || "?").charAt(0).toUpperCase()}</Text>
-                  </View>
-                  {typeof j.aiScore === "number" && (
-                    <View style={[styles.matchPill, { backgroundColor: matchTint(j.aiScore, colors) }]}>
-                      <Text style={[styles.matchPillText, { color: matchColor(j.aiScore, colors) }]}>
-                        {j.aiScore}% match
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={styles.recentTitle} numberOfLines={2}>{j.title}</Text>
-                <Text style={styles.recentCompany} numberOfLines={1}>{j.company}</Text>
-                <Text style={styles.recentLoc} numberOfLines={1}>{j.location}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
+      {/* Recommended for you — AI matcher when available, rule-based otherwise */}
+      <RecommendedRail
+        jobs={recommended}
+        aiPowered={recoIsAI}
+        subtitle="Picked from your skills, location and past applications"
+        onPress={(job) => navigation.navigate("JobDetail", { jobId: job._id })}
+      />
 
       {/* Recently viewed */}
       {recentCtx?.recent?.length > 0 && (
@@ -481,13 +462,6 @@ function Stat({ styles, value, label }) {
     </View>
   );
 }
-
-const matchColor = (s, colors) =>
-  s >= 75 ? colors.success : s >= 50 ? colors.warning : colors.textMuted;
-const matchTint = (s, colors) => {
-  const base = matchColor(s, colors);
-  return base + "22";
-};
 
 const makeStyles = (colors, isDark) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },

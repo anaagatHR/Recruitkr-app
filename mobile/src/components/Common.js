@@ -3,6 +3,7 @@ import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from "rea
 import { Ionicons } from "@expo/vector-icons";
 import { spacing, radius } from "../theme/colors";
 import { useTheme } from "../context/ThemeContext";
+import { getStage, stageColor, tintBg } from "../utils/applicationStages";
 
 export function Loading({ text = "Loading..." }) {
   const { colors } = useTheme();
@@ -59,21 +60,17 @@ export function Chip({ label, active, onPress }) {
   );
 }
 
-export function StatusBadge({ status }) {
+export function StatusBadge({ status, withIcon = false }) {
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  // Soft tint backgrounds; in dark mode use a translucent fill so it stays readable.
-  const tint = (hex) => (isDark ? hex + "33" : hex + "1A");
-  const map = {
-    applied: { fg: colors.info, label: "Applied" },
-    shortlisted: { fg: colors.warning, label: "Shortlisted" },
-    hired: { fg: colors.success, label: "Hired" },
-    rejected: { fg: colors.danger, label: "Rejected" },
-  };
-  const s = map[status] || map.applied;
+  // Labels/colours come from the shared pipeline config so the badge, the
+  // progress tracker and the dashboard filters can never drift apart.
+  const stage = getStage(status);
+  const fg = stageColor(status, colors);
   return (
-    <View style={[styles.statusBadge, { backgroundColor: tint(s.fg) }]}>
-      <Text style={[styles.statusText, { color: s.fg }]}>{s.label}</Text>
+    <View style={[styles.statusBadge, withIcon && styles.statusBadgeIcon, { backgroundColor: tintBg(fg, isDark) }]}>
+      {withIcon ? <Ionicons name={stage.icon} size={12} color={fg} /> : null}
+      <Text style={[styles.statusText, { color: fg }]}>{stage.label}</Text>
     </View>
   );
 }
@@ -93,6 +90,7 @@ const makeStyles = (colors) => StyleSheet.create({
     backgroundColor: colors.primary, borderColor: colors.primary, color: colors.white,
   },
   statusBadge: { paddingHorizontal: spacing.md, paddingVertical: 4, borderRadius: 999 },
+  statusBadgeIcon: { flexDirection: "row", alignItems: "center", gap: 4 },
   statusText: { fontSize: 12, fontWeight: "700" },
   retryBtn: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm,

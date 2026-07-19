@@ -19,10 +19,11 @@ const applicationSchema = new mongoose.Schema(
     coverNote: { type: String, trim: true },
     resumeUrl: { type: String, trim: true },
 
-    // applied -> shortlisted -> rejected / hired
+    // applied -> shortlisted -> interview -> hired, with rejected possible at
+    // any point. The candidate-facing progress tracker renders this pipeline.
     status: {
       type: String,
-      enum: ["applied", "shortlisted", "rejected", "hired"],
+      enum: ["applied", "shortlisted", "interview", "rejected", "hired"],
       default: "applied",
     },
   },

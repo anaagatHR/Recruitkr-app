@@ -2,6 +2,7 @@ import React, { useRef, useMemo } from "react";
 import { Text, TouchableOpacity, ActivityIndicator, StyleSheet, Animated } from "react-native";
 import { radius, spacing } from "../theme/colors";
 import { useTheme } from "../context/ThemeContext";
+import { isWeb } from "../utils/webAnim";
 
 export default function Button({
   title,
@@ -15,10 +16,18 @@ export default function Button({
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
-  // Press scale feedback
+  // Press scale feedback. Skipped on web: there is no native animated module
+  // there, so the spring would run on the JS thread on every press (and RN logs
+  // a `useNativeDriver is not supported` warning). CSS :active handles it.
   const scale = useRef(new Animated.Value(1)).current;
-  const pressIn = () => Animated.spring(scale, { toValue: 0.96, useNativeDriver: true }).start();
-  const pressOut = () => Animated.spring(scale, { toValue: 1, friction: 4, useNativeDriver: true }).start();
+  const pressIn = () => {
+    if (isWeb) return;
+    Animated.spring(scale, { toValue: 0.96, useNativeDriver: true }).start();
+  };
+  const pressOut = () => {
+    if (isWeb) return;
+    Animated.spring(scale, { toValue: 1, friction: 4, useNativeDriver: true }).start();
+  };
 
   return (
     <Animated.View style={{ transform: [{ scale }] }}>

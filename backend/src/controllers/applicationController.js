@@ -70,7 +70,7 @@ export async function jobApplicants(req, res) {
   }
 }
 
-const VALID_STATUSES = ["applied", "shortlisted", "rejected", "hired"];
+const VALID_STATUSES = ["applied", "shortlisted", "interview", "rejected", "hired"];
 
 // PUT /api/applications/:id/status  (employer updates status)
 export async function updateStatus(req, res) {

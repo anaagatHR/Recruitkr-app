@@ -3,6 +3,7 @@ import { Animated, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "./ThemeContext";
+import { isWeb } from "../utils/webAnim";
 import { spacing, radius, shadow } from "../theme/colors";
 
 const ToastContext = createContext(null);
@@ -18,7 +19,10 @@ export function ToastProvider({ children }) {
   const opacity = useRef(new Animated.Value(0)).current;
   const hideTimer = useRef(null);
 
+  // On web there is no native animated module, so fade instantly instead of
+  // running the tween on the JS thread.
   const hide = useCallback(() => {
+    if (isWeb) { opacity.setValue(0); setToast(null); return; }
     Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }).start(() =>
       setToast(null)
     );
@@ -28,7 +32,8 @@ export function ToastProvider({ children }) {
     (message, opts = {}) => {
       if (hideTimer.current) clearTimeout(hideTimer.current);
       setToast({ message, type: opts.type || "info" });
-      Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+      if (isWeb) opacity.setValue(1);
+      else Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
       hideTimer.current = setTimeout(hide, opts.duration || 2200);
     },
     [opacity, hide]
