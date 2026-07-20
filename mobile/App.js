@@ -13,6 +13,12 @@ import { JobAlertsProvider } from "./src/context/JobAlertsContext";
 import { ensureNotifPermission } from "./src/services/localNotify";
 import ErrorBoundary from "./src/components/ErrorBoundary";
 import RootNavigator from "./src/navigation/RootNavigator";
+import { installWebAlert } from "./src/utils/webAlert";
+
+// react-native-web's Alert is a no-op, which silently breaks logout, delete
+// confirmations and every success/error message on web. Install a browser-backed
+// one before anything renders. No-op on native.
+installWebAlert();
 
 // Inner component so it can read the current theme via the hook.
 function ThemedApp() {
