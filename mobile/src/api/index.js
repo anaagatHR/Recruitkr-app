@@ -1,5 +1,9 @@
 import client from "./client";
 
+// ---- Admin panel (Recruitkr-Business) public API ----
+// Second backend; currently mirrors applications. See ./business.js.
+export { businessApi, toApplyBody, BUSINESS_API_READY, BUSINESS_API_BASE_URL } from "./business";
+
 // ---- Auth ----
 export const authApi = {
   register: (data) => client.post("/auth/register", data).then((r) => r.data),

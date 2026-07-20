@@ -41,6 +41,8 @@
     "extra": {
       "//": "Deployed backend URL (Render). Used by the built APK.",
       "apiUrl": "https://recruitkr-api.onrender.com/api",
+      "//businessApiUrl": "Admin panel (Recruitkr-Business) public API. Applications are mirrored here. Override locally with EXPO_PUBLIC_BUSINESS_API_URL; leave empty to disable mirroring.",
+      "businessApiUrl": "https://recruitkr-business.onrender.com/api/public",
       "cloudinary": {
         "//": "Profile photo upload. cloudName + an UNSIGNED upload preset. Not secrets.",
         "cloudName": "j7rkqnw6",

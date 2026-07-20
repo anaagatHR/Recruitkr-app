@@ -29,6 +29,8 @@ export default function ApplyModal({ visible, onClose, onSubmit, submitting, use
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [phone, setPhone] = useState(user?.phone || "");
+  const [qualification, setQualification] = useState(user?.headline || "");
+  const [cover, setCover] = useState("");
   const [source, setSource] = useState("");
   const [refName, setRefName] = useState("");
   const [err, setErr] = useState("");
@@ -39,6 +41,8 @@ export default function ApplyModal({ visible, onClose, onSubmit, submitting, use
       setName(user?.name || "");
       setEmail(user?.email || "");
       setPhone(user?.phone || "");
+      setQualification(user?.headline || "");
+      setCover("");
       setSource("");
       setRefName("");
       setErr("");
@@ -59,6 +63,9 @@ export default function ApplyModal({ visible, onClose, onSubmit, submitting, use
       applicantPhone: phone.trim(),
       referenceSource: source,
       referenceName: refName.trim(),
+      // Extra detail the admin panel asks for; recruitkr-api simply ignores these.
+      qualification: qualification.trim(),
+      cover: cover.trim(),
     });
   }
 
@@ -104,6 +111,22 @@ export default function ApplyModal({ visible, onClose, onSubmit, submitting, use
                   style={styles.input} value={email} onChangeText={setEmail}
                   placeholder="you@example.com" placeholderTextColor={colors.textLight}
                   keyboardType="email-address" autoCapitalize="none"
+                />
+              </Field>
+
+              <Field label="Highest qualification" styles={styles}>
+                <TextInput
+                  style={styles.input} value={qualification} onChangeText={setQualification}
+                  placeholder="e.g. B.Tech Computer Science" placeholderTextColor={colors.textLight}
+                />
+              </Field>
+
+              <Field label="Cover note (optional)" styles={styles}>
+                <TextInput
+                  style={[styles.input, styles.inputMultiline]} value={cover} onChangeText={setCover}
+                  placeholder="Why you're a good fit for this role"
+                  placeholderTextColor={colors.textLight}
+                  multiline numberOfLines={3} textAlignVertical="top"
                 />
               </Field>
 
@@ -196,6 +219,7 @@ const makeStyles = (colors) => StyleSheet.create({
     borderRadius: radius.md, paddingHorizontal: spacing.lg, height: 50,
     fontSize: 15, color: colors.text,
   },
+  inputMultiline: { height: 92, paddingTop: spacing.md, paddingBottom: spacing.md },
   chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   chip: {
     flexDirection: "row", alignItems: "center", gap: 5,

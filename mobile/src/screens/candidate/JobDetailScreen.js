@@ -8,7 +8,7 @@ import Button from "../../components/Button";
 import { Loading } from "../../components/Common";
 import AIMatchCard from "../../components/AIMatchCard";
 import ApplyModal from "../../components/ApplyModal";
-import { jobsApi, applicationsApi } from "../../api";
+import { jobsApi, applicationsApi, businessApi, toApplyBody } from "../../api";
 import { spacing, radius } from "../../theme/colors";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -73,7 +73,18 @@ export default function JobDetailScreen({ route, navigation }) {
   async function submitApplication(details) {
     setApplying(true);
     try {
+      // Primary record — recruitkr-api. My Applications, the duplicate-apply
+      // check and the employer screens all read from here, so this must succeed.
       await applicationsApi.apply({ jobId, ...details });
+
+      // Mirror into the admin panel (Recruitkr-Business) so it lands in their DB
+      // and fires the real-time notification. Deliberately not awaited: the
+      // candidate's application is already saved above, so an outage or a cold
+      // Render instance here must not fail their apply or make them wait.
+      businessApi
+        .apply(toApplyBody({ user, job, details }))
+        .catch((e) => console.warn("[business] application mirror failed:", e.message));
+
       setAlreadyApplied(true);
       setShowApply(false);
       haptics.success();
